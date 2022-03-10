@@ -7,8 +7,8 @@ import time
 from tqdm import tqdm
 
 
-img_save_dir = r"/home/yuyang/data/crnn_data/train_image"  # generated image save dir
-labels_pth = r"/home/yuyang/data/crnn_data/train_label.json"  # generated label save dir, .json file
+img_save_dir = r"/home/yuyang/data/crnn_data/valid_image"  # generated image save dir
+labels_pth = r"/home/yuyang/data/crnn_data/valid_label.json"  # generated label save dir, .json file
 img_height_min = 30  # minimum height of image
 img_height_max = 50  # maxmum height of image
 img_width_min = 95  # minimum width of image
@@ -16,7 +16,7 @@ img_width_max = 200  # maxmum width of image
 blank_index = 0  # blank index in charactor.txt
 charactor_count_min = 4  # minimum count of charactor in one image
 charactor_count_max = 8 # maxmum count of charactor in one image
-sample_count = 8000  # how many sample
+sample_count = 1500  # how many sample
 fonts = [
     "/usr/share/fonts/truetype/arphic/ukai.ttc",
     "/usr/share/fonts/truetype/arphic/uming.ttc",
