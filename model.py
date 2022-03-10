@@ -35,13 +35,13 @@ class CRNN(nn.Module):
         lstm_feature1, _ = self.bilstm1(cnn_feature)  # N, W, 512
         embedding1 = self.linear(lstm_feature1.contiguous().view((-1, 512))).contiguous().view((x.size()[0], -1, 512))  # N, W, 512
         lstm_feature2, _ = self.bilstm2(embedding1)  # N, W, 512
-        output = self.clsf(lstm_feature2.permute(dims=[1, 0, 2]).contiguous().view(-1, 512)).contiguous().view((-1, x.size()[0], self.num_classes))  # W, N, num_classes
+        output = self.clsf(lstm_feature2.contiguous().view(-1, 512)).contiguous().view((x.size()[0], -1, self.num_classes))  # N, W, num_classes
         return output
 
 
 if __name__ == "__main__":
-    d = t.randn(2, 3, 64, 100)
-    model = CRNN(num_classes=10, input_h=64)
+    d = t.randn(4, 3, 32, 100)
+    model = CRNN(num_classes=10, input_h=32)
     for i in range(10):
         output = model(d)
         print(output.size())

@@ -56,7 +56,8 @@ def predict_one_image(img_pth):
     image_tensor, image_pil = load_one_image(img_pth)
     image_pil.show()
     with t.no_grad():
-        output = model(image_tensor)  # T, 1, num_classes
+        output = model(image_tensor)  # 1, T, num_classes
+        output = output.permute(dims=[1, 0, 2])  # T, 1, num_classes
         output_charactor_indexs = decode_one_predicton_result(output, blank_index)
         result = "".join([charactors[i] for i in output_charactor_indexs])
     return result

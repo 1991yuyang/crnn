@@ -10,10 +10,10 @@ import numpy as np
 CUDA_VISIBLE_DEVICES = "0"
 os.environ["CUDA_VISIBLE_DEVICES"] = CUDA_VISIBLE_DEVICES
 device_ids = list(range(len(CUDA_VISIBLE_DEVICES.split(","))))
-epoch = 2000
-batch_size = 20
-init_lr = 0.001
-min_lr = 0.00001
+epoch = 3000
+batch_size = 48
+init_lr = 0.005
+min_lr = 0.0001
 cosine_lr_sch_cycle_times = 0.5
 input_h = 32  # input height of image
 train_img_dir = r"/home/yuyang/data/crnn_data/train_image"
@@ -52,7 +52,8 @@ def train_epoch(current_epoch, model, criterion, optimizer, train_loader):
     for d_train, targets, target_lenghts in train_loader:
         d_train_cuda = d_train.cuda(device_ids[0])
         targets = targets.cuda(device_ids[0])
-        train_output = model(d_train_cuda)  # W, N, num_classes
+        train_output = model(d_train_cuda)  # N, W, num_classes
+        train_output = train_output.permute(dims=[1, 0, 2]) # W, N, num_classes
         T = train_output.size()[0]
         log_probs = F.log_softmax(train_output, dim=2).requires_grad_()
         input_lenghts = (T,) * batch_size
@@ -81,7 +82,8 @@ def valid_epoch(current_epoch, model, criterion, valid_loader):
         d_valid_cuda = d_valid.cuda(device_ids[0])
         targets = targets.cuda(device_ids[0])
         with t.no_grad():
-            valid_output = model(d_valid_cuda)  # W, N, num_classes
+            valid_output = model(d_valid_cuda)  # N, W, num_classes
+            valid_output = valid_output.permute(dims=[1, 0, 2]) # W, N, num_classes
             T = valid_output.size()[0]
             log_probs = F.log_softmax(valid_output, dim=2).requires_grad_()
             input_lenghts = (T,) * batch_size
@@ -105,7 +107,7 @@ def main():
     model = CRNN(num_classes=num_classes, input_h=input_h)
     model = nn.DataParallel(module=model, device_ids=device_ids)
     model = model.cuda(device_ids[0])
-    criterion = nn.CTCLoss(blank=blank_index).cuda(0)
+    criterion = nn.CTCLoss(blank=blank_index).cuda(device_ids[0])
     optimizer = optim.Adam(params=model.parameters(), lr=init_lr)
     lr_sch = optim.lr_scheduler.CosineAnnealingLR(optimizer, epoch // int(2 * cosine_lr_sch_cycle_times), eta_min=min_lr)
     for e in range(epoch):
