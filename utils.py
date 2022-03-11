@@ -21,6 +21,7 @@ def decode_one_predicton_result(model_output, blank_index):
             if indexs[i] != indexs[i + 1] and indexs[i] != blank_index:
                 result.append(indexs[i])
         else:
-            result.append(indexs[i])
+            if indexs[i] != blank_index:
+                result.append(indexs[i])
     return result
 
