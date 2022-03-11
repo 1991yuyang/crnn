@@ -24,10 +24,10 @@ num_classes = len(charactors)
 def load_one_image(img_pth):
     if isinstance(img_pth, str):
         image_pil = Image.open(img_pth)
-    elif isinstance(img_pth, PIL.JpegImagePlugin.JpegImageFile):
+    elif isinstance(img_pth, PIL.Image.Image):
         image_pil = img_pth
     else:
-        raise("img_pth should be string or PIL.JpegImagePlugin.JpegImageFile")
+        raise(Exception("img_pth should be string or PIL image"))
     image_tensor = transformer(image_pil).unsqueeze(0).cuda(0)
     return image_tensor, image_pil
 
@@ -54,7 +54,6 @@ def predict_one_image(img_pth):
     :return:
     """
     image_tensor, image_pil = load_one_image(img_pth)
-    image_pil.show()
     with t.no_grad():
         output = model(image_tensor)  # 1, T, num_classes
         output = output.permute(dims=[1, 0, 2])  # T, 1, num_classes
