@@ -59,7 +59,8 @@ def generate_one_image():
 
 
 def main():
-    for i in tqdm(range(sample_count)):
+    i = 0
+    while True:
         image_name = "%d.jpg" % (i,)
         image_save_path = os.path.join(img_save_dir, image_name)
         try:
@@ -70,6 +71,11 @@ def main():
             labels[image_name] = label
             image.save(image_save_path)
             time.sleep(0.1)
+            i += 1
+            if i % (sample_count // 30) == 0:
+                print("generated %d images" % (i,))
+            if i == sample_count:
+                break
     json.dump(labels, open(labels_pth, "w", encoding="utf-8"), ensure_ascii=False)
 
 
