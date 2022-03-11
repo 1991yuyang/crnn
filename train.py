@@ -23,6 +23,7 @@ valid_label_pth = r"/home/yuyang/data/crnn_data/valid_label.json"
 print_step = 10
 blank_index = 0  # blank charactor index in charactors
 num_workers = 4
+weight_decay = 0.0001
 with open("charactors.txt", "r", encoding="utf-8") as file:
     charactors = file.read().split(",")
 num_classes = len(charactors)
@@ -108,7 +109,7 @@ def main():
     model = nn.DataParallel(module=model, device_ids=device_ids)
     model = model.cuda(device_ids[0])
     criterion = nn.CTCLoss(blank=blank_index).cuda(device_ids[0])
-    optimizer = optim.Adam(params=model.parameters(), lr=init_lr)
+    optimizer = optim.Adam(params=model.parameters(), lr=init_lr, weight_decay=weight_decay)
     lr_sch = optim.lr_scheduler.CosineAnnealingLR(optimizer, epoch // int(2 * cosine_lr_sch_cycle_times), eta_min=min_lr)
     for e in range(epoch):
         print("lr:%.5f" % (lr_sch.get_lr()[0],))
