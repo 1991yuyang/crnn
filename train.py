@@ -33,16 +33,33 @@ valid_loss_window = Visdom()
 total_step = 1
 
 
-def calc_accu(model_output, targets):
-    batch_predict_charactor_indexs = []
+# def calc_accu(model_output, targets):
+#     batch_predict_charactor_indexs = []
+#     for i in range(model_output.size()[1]):
+#         one_output = model_output[:, i:i + 1, :]
+#         result = decode_one_predicton_result(one_output, blank_index)
+#        batch_predict_charactor_indexs.extend(result)
+#     if len(batch_predict_charactor_indexs) != len(targets):
+#         return float(0)
+#     accu = np.sum((np.array(batch_predict_charactor_indexs) == targets.detach().cpu().numpy())) / len(batch_predict_charactor_indexs)
+#     return float(accu)
+
+
+
+def calc_accu(model_output, target_seperate):
+    batch_accu = 0
     for i in range(model_output.size()[1]):
         one_output = model_output[:, i:i + 1, :]
         result = decode_one_predicton_result(one_output, blank_index)
-        batch_predict_charactor_indexs.extend(result)
-    if len(batch_predict_charactor_indexs) != len(targets):
-        return float(0)
-    accu = np.sum((np.array(batch_predict_charactor_indexs) == targets.detach().cpu().numpy())) / len(batch_predict_charactor_indexs)
+        target_of_current_sample = target_seperate[i]
+        if len(target_of_current_sample) == len(result):
+            current_sample_accu = np.sum((np.array(target_of_current_sample) == np.array(result))) / len(target_of_current_sample)
+        else:
+            current_sample_accu = 0
+        batch_accu += current_sample_accu
+    accu = batch_accu / model_output.size()[1]
     return float(accu)
+
 
 
 def train_epoch(current_epoch, model, criterion, optimizer, train_loader):
@@ -50,7 +67,7 @@ def train_epoch(current_epoch, model, criterion, optimizer, train_loader):
     model.train()
     step = len(train_loader)
     current_step = 1
-    for d_train, targets, target_lenghts in train_loader:
+    for d_train, targets, target_lenghts, target_seperate in train_loader:
         d_train_cuda = d_train.cuda(device_ids[0])
         targets = targets.cuda(device_ids[0])
         train_output = model(d_train_cuda)  # N, W, num_classes
@@ -63,7 +80,7 @@ def train_epoch(current_epoch, model, criterion, optimizer, train_loader):
         train_loss.backward()
         optimizer.step()
         if current_step % print_step == 0:
-            train_accu = calc_accu(train_output, targets)
+            train_accu = calc_accu(train_output, target_seperate)
             print("epoch:%d/%d, step:%d/%d, train_loss:%.5f, train_accu:%.5f" % (current_epoch, epoch, current_step, step, train_loss.item(), train_accu))
             train_loss_window.line([train_loss.item()], [total_step], win="train loss", update="append", opts=dict(title="train_loss"))
         current_step += 1
@@ -79,7 +96,7 @@ def valid_epoch(current_epoch, model, criterion, valid_loader):
     step = len(valid_loader)
     accum_loss = 0
     accum_accu = 0
-    for d_valid, targets, target_lenghts in valid_loader:
+    for d_valid, targets, target_lenghts, target_seperate in valid_loader:
         d_valid_cuda = d_valid.cuda(device_ids[0])
         targets = targets.cuda(device_ids[0])
         with t.no_grad():
@@ -90,7 +107,7 @@ def valid_epoch(current_epoch, model, criterion, valid_loader):
             input_lenghts = (T,) * batch_size
             valid_loss = criterion(log_probs, targets, input_lenghts, target_lenghts)
             accum_loss += valid_loss.item()
-            valid_accu = calc_accu(valid_output, targets)
+            valid_accu = calc_accu(valid_output, target_seperate)
             accum_accu += valid_accu
     avg_loss = accum_loss / step
     avg_accu = accum_accu / step

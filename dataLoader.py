@@ -93,6 +93,7 @@ def return_collate_fn():
     def my_collate_fn(batch):
         images = []
         labels = []
+        labels_seperate = []
         lenghts = []
         max_w = np.max([item[-1] for item in batch])
         for img, label, w in batch:
@@ -107,10 +108,11 @@ def return_collate_fn():
             img = pad_op(img, (left_padd, 0, right_padd, 0))
             img = to_tensor(img)
             images.append(img.unsqueeze(0))
+            labels_seperate.append(label)
             labels.extend(label)
             lenghts.append(len(label))
         images = t.cat(images, dim=0)
-        return images, t.tensor(labels).type(t.LongTensor), tuple(lenghts)
+        return images, t.tensor(labels).type(t.LongTensor), tuple(lenghts), labels_seperate
     return my_collate_fn
 
 

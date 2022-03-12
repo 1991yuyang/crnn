@@ -41,6 +41,7 @@ valid_label_pth： 验证集标签路径
 print_step： 训练多少个step输出一次训练信息
 blank_index： 空白符在charactors.txt中的索引位置（charactors.txt中的逗号不占位，或表示为去除所有逗号后空白符的索引位置）
 num_workers： 使用几个线程加载数据
+weight_decay: optimizer的参数weight_decay
 4.运行train.py
 ```
 python train.py
