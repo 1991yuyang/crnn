@@ -57,18 +57,41 @@ class MySet(data.Dataset):
         return len(self.img_names)
 
 
+# class KeepRatioResize(object):
+# 
+#     def __init__(self, input_h, interpolation=Image.BILINEAR):
+#         self.input_h = input_h
+#         self.interpolation = interpolation
+# 
+#     def __call__(self, img):
+#         original_w, original_h = img.size
+#         w_h_ratio = original_w / original_h
+#         input_w = int(w_h_ratio * self.input_h)
+#         img = img.resize((input_w, self.input_h), self.interpolation)
+#         return img
+
+
 class KeepRatioResize(object):
 
     def __init__(self, input_h, interpolation=Image.BILINEAR):
         self.input_h = input_h
         self.interpolation = interpolation
+        self.pad = PadOp()
 
     def __call__(self, img):
         original_w, original_h = img.size
         w_h_ratio = original_w / original_h
         input_w = int(w_h_ratio * self.input_h)
+        if input_w == 0:
+            input_w = 1
         img = img.resize((input_w, self.input_h), self.interpolation)
+        if input_w < 8:
+            pad_size = 8 - input_w
+            left_pad = pad_size // 2
+            right_pad = pad_size - left_pad
+            img = self.pad(img, (left_pad, 0, right_pad, 0))
         return img
+
 
 
 class PadOp(object):

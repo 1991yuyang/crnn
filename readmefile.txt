@@ -12,7 +12,7 @@ train_img_dir
     "2.jpg": text2,
     ......
 }
-json文档中的每一个text表示当前图片真实文本内容
+json文档中的每一个text表示当前图片真实文本内容,text中的每一个字符应当均包含于charactors.txt中
 注意json文档中的每一个text中不包含blank字符，例如charactors.txt中blank字符用"-"表示，则text中应当不存在"-"，只包含非blank字符
 验证集图片和标签格式与训练集相同。
 你可以使用generate_data.py来根据charactors.txt来生成训练数据集，需要首先配置charactors.txt中的参数，参数如下所示：
